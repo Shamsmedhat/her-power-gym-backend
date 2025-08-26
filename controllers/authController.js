@@ -14,6 +14,7 @@ const signToken = (id) => {
 
 // Helper function to send token response
 const createSendToken = (user, statusCode, res) => {
+  console.log('userrrrr', user);
   const token = signToken(user._id);
 
   // Remove password from output
@@ -23,13 +24,6 @@ const createSendToken = (user, statusCode, res) => {
     status: 'success',
     token,
     user,
-  });
-};
-
-exports.test = async (req, res) => {
-  res.status(200).json({
-    status: 'success',
-    data: 'Test success',
   });
 };
 

@@ -5,7 +5,6 @@ const { protect, isSuperAdmin } = require('../middleware/authMiddleware');
 const router = express.Router();
 
 // Public routes
-router.get('/', authController.test);
 router.post('/login', authController.login);
 router.post('/login-client', authController.loginClient);
 
@@ -22,8 +21,8 @@ router.patch(
   isSuperAdmin,
   authController.resetPassword
 );
-// Protected routes
 
+// Protected routes
 router.use(protect); // All routes after this middleware are protected
 
 router.get('/me', authController.getMe);
