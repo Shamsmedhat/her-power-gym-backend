@@ -1,11 +1,61 @@
 const Client = require('../models/clientModel');
 const Session = require('../models/sessionModel');
 const User = require('../models/userModel');
+const SubscriptionPlan = require('../models/subscriptionModel');
+const handleDuplication = require('../lib/helper');
 
 // Helper function to check user permissions
 const checkPermission = (userRole, requiredRoles) => {
   return requiredRoles.includes(userRole);
 };
+
+// Helper: generate clientId e.g., CL + last 3 of phone + 2 random digits, ensure unique
+async function generateUniqueClientId(phone) {
+  const lastThree = (phone || '').replace(/\D/g, '').slice(-3).padStart(3, '0');
+  // Try up to 20 times to avoid rare collisions
+  for (let i = 0; i < 20; i += 1) {
+    const randomTwo = Math.floor(Math.random() * 100)
+      .toString()
+      .padStart(2, '0');
+    const candidate = `CL${lastThree}${randomTwo}`;
+    const exists = await Client.exists({ clientId: candidate });
+    if (!exists) return candidate;
+  }
+  throw new Error('Failed to generate a unique clientId. Please try again.');
+}
+
+// Helper: derive prices from plans for subscription and privatePlan
+async function derivePricesAndDefaults(body) {
+  const result = { ...body };
+
+  // Main subscription priceAtPurchase from plan
+  if (result.subscription && result.subscription.plan) {
+    const plan = await SubscriptionPlan.findById(
+      result.subscription.plan
+    ).lean();
+    if (!plan) throw new Error('Invalid subscription plan id');
+    result.subscription.priceAtPurchase = plan.price;
+    // If durationDays present on plan and dates not provided, caller should still provide start/end dates
+  }
+
+  // Private plan: priceAtPurchase and default totalSessions from plan
+  if (result.privatePlan && result.privatePlan.plan) {
+    const privatePlan = await SubscriptionPlan.findById(
+      result.privatePlan.plan
+    ).lean();
+    if (!privatePlan) throw new Error('Invalid private plan id');
+    result.privatePlan.priceAtPurchase = privatePlan.price;
+    if (!result.privatePlan.totalSessions && privatePlan.totalSessions) {
+      result.privatePlan.totalSessions = privatePlan.totalSessions;
+    }
+  }
+
+  // Prevent manual overrides if user tried to set prices directly
+  // if (result.subscription) delete result.subscription.priceAtPurchase;
+  // if (result.privatePlan) delete result.privatePlan.priceAtPurchase;
+
+  return result;
+}
 
 // Get all clients (Super Admin, Admin, Coach)
 exports.getAllClients = async (req, res) => {
@@ -106,7 +156,18 @@ exports.createClient = async (req, res) => {
       });
     }
 
-    const newClient = await Client.create(req.body);
+    // Build payload with derived prices and generated clientId
+    const payloadWithPrices = await derivePricesAndDefaults(req.body);
+
+    // Always generate clientId server-side and ensure uniqueness
+    const generatedClientId = await generateUniqueClientId(
+      payloadWithPrices.phone
+    );
+
+    const newClient = await Client.create({
+      ...payloadWithPrices,
+      clientId: generatedClientId,
+    });
 
     res.status(201).json({
       status: 'success',
@@ -117,7 +178,7 @@ exports.createClient = async (req, res) => {
   } catch (error) {
     res.status(400).json({
       status: 'error',
-      message: error.message,
+      message: handleDuplication(error),
     });
   }
 };
@@ -142,10 +203,20 @@ exports.updateClient = async (req, res) => {
       });
     }
 
-    const updatedClient = await Client.findByIdAndUpdate(id, req.body, {
-      new: true,
-      runValidators: true,
-    }).populate('subscription.plan privatePlan.plan privatePlan.coach');
+    // Prevent clientId manual edits; derive prices if plans changed
+    const incoming = { ...req.body };
+    if (incoming.clientId) delete incoming.clientId;
+
+    const payloadWithPrices = await derivePricesAndDefaults(incoming);
+
+    const updatedClient = await Client.findByIdAndUpdate(
+      id,
+      payloadWithPrices,
+      {
+        new: true,
+        runValidators: true,
+      }
+    ).populate('subscription.plan privatePlan.plan privatePlan.coach');
 
     if (!updatedClient) {
       return res.status(404).json({

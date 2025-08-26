@@ -3,6 +3,7 @@ const Client = require('../models/clientModel');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
+const { handleDuplication } = require('../lib/helper');
 
 // Helper function to create JWT token
 const signToken = (id) => {
@@ -21,9 +22,14 @@ const createSendToken = (user, statusCode, res) => {
   res.status(statusCode).json({
     status: 'success',
     token,
-    data: {
-      user,
-    },
+    user,
+  });
+};
+
+exports.test = async (req, res) => {
+  res.status(200).json({
+    status: 'success',
+    data: 'Test success',
   });
 };
 
@@ -39,6 +45,8 @@ exports.register = async (req, res) => {
       });
     }
 
+    // req.user => is the loggedin user himself
+    // req.body => is the user that the loggedin user try to register
     // Only super admin can create admin users
     if (req.body.role === 'admin' && role !== 'super admin') {
       return res.status(403).json({
@@ -55,9 +63,10 @@ exports.register = async (req, res) => {
 
     createSendToken(newUser, 201, res);
   } catch (error) {
+    console.log();
     res.status(400).json({
       status: 'error',
-      message: error.message,
+      message: handleDuplication(error),
     });
   }
 };
@@ -67,7 +76,6 @@ exports.login = async (req, res) => {
   try {
     const { phone, password } = req.body;
 
-    console.log('phone, password', phone, password);
     // Check if phone and password exist
     if (!phone || !password) {
       return res.status(400).json({
@@ -124,7 +132,7 @@ exports.loginClient = async (req, res) => {
       name: client.name,
       phone: client.phone,
       role: 'client',
-      clientId: client._id,
+      clientId: client.clientId,
     };
 
     // Create a special token for client
@@ -169,7 +177,7 @@ exports.getMe = async (req, res) => {
   }
 };
 
-// Update password
+// Update password (self)
 exports.updatePassword = async (req, res) => {
   try {
     const { currentPassword, newPassword } = req.body;
@@ -199,32 +207,37 @@ exports.updatePassword = async (req, res) => {
   }
 };
 
-// Forgot password
-exports.forgotPassword = async (req, res) => {
+// Admin resets another user's password (Admin/Super Admin)
+exports.adminResetPassword = async (req, res) => {
   try {
-    const { phone } = req.body;
+    const { id } = req.params; // target user id
+    const { newPassword } = req.body;
 
-    const user = await User.findOne({ phone });
-    if (!user) {
-      return res.status(404).json({
+    if (!newPassword || newPassword.length < 6) {
+      return res.status(400).json({
         status: 'error',
-        message: 'There is no user with this phone number.',
+        message: 'Please provide a newPassword with at least 6 characters.',
       });
     }
 
-    // Generate random reset token
-    const resetToken = user.createPasswordResetToken();
-    await user.save({ validateBeforeSave: false });
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'User not found',
+      });
+    }
 
-    // Send reset token via SMS (implement your SMS service here)
-    // For now, just return the token
+    user.password = await bcrypt.hash(newPassword, 12);
+    // Optional: invalidate other sessions by rotating a passwordChangedAt if you track it
+    await user.save();
+
     res.status(200).json({
       status: 'success',
-      message: 'Reset token sent to your phone.',
-      resetToken, // Remove this in production
+      message: 'Password updated successfully by admin.',
     });
   } catch (error) {
-    res.status(500).json({
+    res.status(400).json({
       status: 'error',
       message: error.message,
     });
@@ -232,6 +245,7 @@ exports.forgotPassword = async (req, res) => {
 };
 
 // Reset password
+//TODO in future when mail/SMS implemented
 exports.resetPassword = async (req, res) => {
   try {
     const { token, newPassword } = req.body;
@@ -258,6 +272,39 @@ exports.resetPassword = async (req, res) => {
     createSendToken(user, 200, res);
   } catch (error) {
     res.status(400).json({
+      status: 'error',
+      message: error.message,
+    });
+  }
+};
+
+// Forgot password
+//TODO in future when mail/SMS implemented
+exports.forgotPassword = async (req, res) => {
+  try {
+    const { phone } = req.body;
+
+    const user = await User.findOne({ phone });
+    if (!user) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'There is no user with this phone number.',
+      });
+    }
+
+    // Generate random reset token
+    const resetToken = user.createPasswordResetToken();
+    await user.save({ validateBeforeSave: false });
+
+    // Send reset token via SMS (implement your SMS service here)
+    // For now, just return the token
+    res.status(200).json({
+      status: 'success',
+      message: 'Reset token sent to your phone.',
+      resetToken, // Remove this in production
+    });
+  } catch (error) {
+    res.status(500).json({
       status: 'error',
       message: error.message,
     });
