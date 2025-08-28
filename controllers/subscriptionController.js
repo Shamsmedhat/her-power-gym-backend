@@ -184,8 +184,10 @@ exports.deleteSubscriptionPlan = async (req, res) => {
       });
     }
 
-    res.status(204).json({
+    // Changed from 204 to 200 with JSON response
+    res.status(200).json({
       status: 'success',
+      message: 'Subscription plan deleted successfully',
       data: subscriptionPlan,
     });
   } catch (error) {
