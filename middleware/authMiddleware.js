@@ -17,6 +17,7 @@ exports.protect = async (req, res, next) => {
 
     if (!token) {
       return res.status(401).json({
+        statusCode: 401,
         status: 'error',
         message: 'You are not logged in. Please log in to get access.',
       });
@@ -29,6 +30,7 @@ exports.protect = async (req, res, next) => {
     const currentUser = await User.findById(decoded.id);
     if (!currentUser) {
       return res.status(401).json({
+        statusCode: 401,
         status: 'error',
         message: 'The user belonging to this token no longer exists.',
       });
@@ -39,6 +41,7 @@ exports.protect = async (req, res, next) => {
     next();
   } catch (error) {
     return res.status(401).json({
+      statusCode: 401,
       status: 'error',
       message: 'Invalid token. Please log in again.',
     });

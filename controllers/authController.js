@@ -82,6 +82,7 @@ exports.login = async (req, res) => {
 
     if (!user || !(await bcrypt.compare(password, user.password))) {
       return res.status(401).json({
+        statusCode: 401,
         status: 'error',
         message: 'Incorrect phone or password.',
       });
@@ -114,6 +115,7 @@ exports.loginClient = async (req, res) => {
 
     if (!client) {
       return res.status(401).json({
+        statusCode: 401,
         status: 'error',
         message: 'Invalid phone or client ID.',
       });
@@ -181,6 +183,7 @@ exports.updatePassword = async (req, res) => {
     // Check if current password is correct
     if (!(await bcrypt.compare(currentPassword, user.password))) {
       return res.status(401).json({
+        statusCode: 401,
         status: 'error',
         message: 'Your current password is incorrect.',
       });
