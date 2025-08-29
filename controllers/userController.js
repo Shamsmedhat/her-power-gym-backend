@@ -7,6 +7,38 @@ const checkPermission = (userRole, requiredRoles) => {
   return requiredRoles.includes(userRole);
 };
 
+// Helper: generate userId based on role + last 3 of phone + 2 random digits, ensure unique
+async function generateUniqueUserId(phone, role) {
+  const lastThree = (phone || '').replace(/\D/g, '').slice(-3).padStart(3, '0');
+
+  // Determine prefix based on role
+  let prefix;
+  switch (role) {
+    case 'super admin':
+      prefix = 'SA';
+      break;
+    case 'admin':
+      prefix = 'AD';
+      break;
+    case 'coach':
+      prefix = 'CO';
+      break;
+    default:
+      prefix = 'UR'; // fallback for any other roles
+  }
+
+  // Try up to 20 times to avoid rare collisions
+  for (let i = 0; i < 20; i += 1) {
+    const randomTwo = Math.floor(Math.random() * 100)
+      .toString()
+      .padStart(2, '0');
+    const candidate = `${prefix}${lastThree}${randomTwo}`;
+    const exists = await User.exists({ userId: candidate });
+    if (!exists) return candidate;
+  }
+  throw new Error('Failed to generate a unique userId. Please try again.');
+}
+
 // Get all users (Super Admin, Admin)
 exports.getAllUsers = async (req, res) => {
   try {
@@ -95,7 +127,14 @@ exports.createUser = async (req, res) => {
       });
     }
 
-    const newUser = await User.create(req.body);
+    // Generate unique userId based on the role being created
+    const userId = await generateUniqueUserId(req.body.phone, req.body.role);
+
+    // Create user with generated userId
+    const newUser = await User.create({
+      ...req.body,
+      userId,
+    });
 
     res.status(201).json({
       status: 'success',
