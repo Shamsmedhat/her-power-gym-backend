@@ -55,7 +55,6 @@ exports.register = async (req, res) => {
     const userId = await generateUniqueUserId(req.body.phone, req.body.role);
 
     const newUser = await User.create({ userId, ...req.body });
-
     createSendToken(newUser, 201, res);
   } catch (error) {
     res.status(400).json({
