@@ -56,7 +56,6 @@ exports.register = async (req, res) => {
 
     createSendToken(newUser, 201, res);
   } catch (error) {
-    console.log();
     res.status(400).json({
       status: 'error',
       message: handleDuplication(error),
