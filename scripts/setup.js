@@ -56,7 +56,7 @@ const sampleUsers = [
     name: 'Super Admin',
     phone: '1234567890',
     password: 'admin123',
-    role: 'super admin',
+    role: 'super-admin',
     userId: 'SUPER001',
   },
   {

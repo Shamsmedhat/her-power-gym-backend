@@ -62,7 +62,7 @@ exports.getAllClients = async (req, res) => {
   try {
     const { role, _id } = req.user;
 
-    if (!checkPermission(role, ['super admin', 'admin', 'coach'])) {
+    if (!checkPermission(role, ['super-admin', 'admin', 'coach'])) {
       return res.status(403).json({
         status: 'error',
         message: 'Access denied. Insufficient permissions.',
@@ -110,7 +110,7 @@ exports.getClient = async (req, res) => {
       ],
     });
 
-    if (!isClient && !checkPermission(role, ['super admin', 'admin'])) {
+    if (!isClient && !checkPermission(role, ['super-admin', 'admin'])) {
       return res.status(403).json({
         status: 'error',
         message:
@@ -149,7 +149,7 @@ exports.createClient = async (req, res) => {
   try {
     const { role } = req.user;
 
-    if (!checkPermission(role, ['super admin', 'admin'])) {
+    if (!checkPermission(role, ['super-admin', 'admin'])) {
       return res.status(403).json({
         status: 'error',
         message: 'Access denied. Insufficient permissions.',
@@ -195,7 +195,7 @@ exports.updateClient = async (req, res) => {
       $or: [{ 'privatePlan.coach': _id }, { _id: req.user.clientId }],
     });
 
-    if (!isClient && !checkPermission(role, ['super admin', 'admin'])) {
+    if (!isClient && !checkPermission(role, ['super-admin', 'admin'])) {
       return res.status(403).json({
         status: 'error',
         message:
@@ -245,7 +245,7 @@ exports.deleteClient = async (req, res) => {
     const { role } = req.user;
     const { id } = req.params;
 
-    if (!checkPermission(role, ['super admin', 'admin'])) {
+    if (!checkPermission(role, ['super-admin', 'admin'])) {
       return res.status(403).json({
         status: 'error',
         message: 'Access denied. Insufficient permissions.',
@@ -285,7 +285,7 @@ exports.getMySubscription = async (req, res) => {
       $or: [{ 'privatePlan.coach': _id }, { _id: req.user.clientId }],
     });
 
-    if (!isAuthorized && !checkPermission(role, ['super admin', 'admin'])) {
+    if (!isAuthorized && !checkPermission(role, ['super-admin', 'admin'])) {
       return res.status(403).json({
         status: 'error',
         message:
@@ -342,7 +342,7 @@ exports.getMySessions = async (req, res) => {
       $or: [{ 'privatePlan.coach': _id }, { _id: req.user.clientId }],
     });
 
-    if (!isAuthorized && !checkPermission(role, ['super admin', 'admin'])) {
+    if (!isAuthorized && !checkPermission(role, ['super-admin', 'admin'])) {
       return res.status(403).json({
         status: 'error',
         message:

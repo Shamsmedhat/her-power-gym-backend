@@ -12,7 +12,7 @@ exports.getAllSessions = async (req, res) => {
   try {
     const { role, _id } = req.user;
 
-    if (!checkPermission(role, ['super admin', 'admin', 'coach'])) {
+    if (!checkPermission(role, ['super-admin', 'admin', 'coach'])) {
       return res.status(403).json({
         status: 'error',
         message: 'Access denied. Insufficient permissions.',
@@ -66,7 +66,7 @@ exports.getSession = async (req, res) => {
     // Check permissions
     const isCoach = session.coach._id.toString() === _id.toString();
     const isClient = session.client._id.toString() === req.user.clientId;
-    const isAdmin = checkPermission(role, ['super admin', 'admin']);
+    const isAdmin = checkPermission(role, ['super-admin', 'admin']);
 
     if (!isCoach && !isClient && !isAdmin) {
       return res.status(403).json({
@@ -95,7 +95,7 @@ exports.createSession = async (req, res) => {
   try {
     const { role } = req.user;
 
-    if (!checkPermission(role, ['super admin', 'admin'])) {
+    if (!checkPermission(role, ['super-admin', 'admin'])) {
       return res.status(403).json({
         status: 'error',
         message: 'Access denied. Insufficient permissions.',
@@ -140,7 +140,7 @@ exports.updateSession = async (req, res) => {
     // Check permissions
     const isCoach = session.coach.toString() === _id.toString();
     const isClient = session.client.toString() === req.user.clientId;
-    const isAdmin = checkPermission(role, ['super admin', 'admin']);
+    const isAdmin = checkPermission(role, ['super-admin', 'admin']);
 
     if (!isCoach && !isClient && !isAdmin) {
       return res.status(403).json({
@@ -202,7 +202,7 @@ exports.deleteSession = async (req, res) => {
     const { role } = req.user;
     const { id } = req.params;
 
-    if (!checkPermission(role, ['super admin', 'admin'])) {
+    if (!checkPermission(role, ['super-admin', 'admin'])) {
       return res.status(403).json({
         status: 'error',
         message: 'Access denied. Insufficient permissions.',
@@ -323,7 +323,7 @@ exports.getSessionsByClient = async (req, res) => {
       client.privatePlan &&
       client.privatePlan.coach.toString() === _id.toString();
     const isClient = client._id.toString() === req.user.clientId;
-    const isAdmin = checkPermission(role, ['super admin', 'admin']);
+    const isAdmin = checkPermission(role, ['super-admin', 'admin']);
 
     if (!isCoach && !isClient && !isAdmin) {
       return res.status(403).json({

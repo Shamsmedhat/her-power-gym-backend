@@ -11,7 +11,7 @@ exports.getAllSubscriptionPlans = async (req, res) => {
   try {
     const { role } = req.user;
 
-    if (!checkPermission(role, ['super admin', 'admin', 'coach', 'client'])) {
+    if (!checkPermission(role, ['super-admin', 'admin', 'coach', 'client'])) {
       return res.status(403).json({
         status: 'error',
         message: 'Access denied. Insufficient permissions.',
@@ -48,7 +48,7 @@ exports.getSubscriptionPlan = async (req, res) => {
     const { role } = req.user;
     const { id } = req.params;
 
-    if (!checkPermission(role, ['super admin', 'admin', 'coach', 'client'])) {
+    if (!checkPermission(role, ['super-admin', 'admin', 'coach', 'client'])) {
       return res.status(403).json({
         status: 'error',
         message: 'Access denied. Insufficient permissions.',
@@ -83,7 +83,7 @@ exports.createSubscriptionPlan = async (req, res) => {
   try {
     const { role } = req.user;
 
-    if (!checkPermission(role, ['super admin', 'admin'])) {
+    if (!checkPermission(role, ['super-admin', 'admin'])) {
       return res.status(403).json({
         status: 'error',
         message: 'Access denied. Insufficient permissions.',
@@ -112,7 +112,7 @@ exports.updateSubscriptionPlan = async (req, res) => {
     const { role } = req.user;
     const { id } = req.params;
 
-    if (!checkPermission(role, ['super admin', 'admin'])) {
+    if (!checkPermission(role, ['super-admin', 'admin'])) {
       return res.status(403).json({
         status: 'error',
         message: 'Access denied. Insufficient permissions.',
@@ -155,7 +155,7 @@ exports.deleteSubscriptionPlan = async (req, res) => {
     const { role } = req.user;
     const { id } = req.params;
 
-    if (!checkPermission(role, ['super admin', 'admin'])) {
+    if (!checkPermission(role, ['super-admin', 'admin'])) {
       return res.status(403).json({
         status: 'error',
         message: 'Access denied. Insufficient permissions.',
@@ -201,7 +201,7 @@ exports.getMainSubscriptionPlans = async (req, res) => {
   try {
     const { role } = req.user;
 
-    if (!checkPermission(role, ['super admin', 'admin', 'coach', 'client'])) {
+    if (!checkPermission(role, ['super-admin', 'admin', 'coach', 'client'])) {
       return res.status(403).json({
         status: 'error',
         message: 'Access denied. Insufficient permissions.',
@@ -229,7 +229,7 @@ exports.getPrivateSubscriptionPlans = async (req, res) => {
   try {
     const { role } = req.user;
 
-    if (!checkPermission(role, ['super admin', 'admin', 'coach', 'client'])) {
+    if (!checkPermission(role, ['super-admin', 'admin', 'coach', 'client'])) {
       return res.status(403).json({
         status: 'error',
         message: 'Access denied. Insufficient permissions.',

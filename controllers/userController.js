@@ -15,7 +15,7 @@ exports.getAllUsers = async (req, res) => {
   try {
     const { role } = req.user;
 
-    if (!checkPermission(role, ['super admin', 'admin'])) {
+    if (!checkPermission(role, ['super-admin', 'admin'])) {
       return res.status(403).json({
         status: 'error',
         message: 'Access denied. Insufficient permissions.',
@@ -47,7 +47,7 @@ exports.getUser = async (req, res) => {
     // Users can only access their own data, unless they're admin/super admin
     if (
       req.user._id.toString() !== id &&
-      !checkPermission(role, ['super admin', 'admin'])
+      !checkPermission(role, ['super-admin', 'admin'])
     ) {
       return res.status(403).json({
         status: 'error',
@@ -83,7 +83,7 @@ exports.createUser = async (req, res) => {
   try {
     const { role } = req.user;
 
-    if (!checkPermission(role, ['super admin', 'admin'])) {
+    if (!checkPermission(role, ['super-admin', 'admin'])) {
       return res.status(403).json({
         status: 'error',
         message: 'Access denied. Insufficient permissions.',
@@ -91,7 +91,7 @@ exports.createUser = async (req, res) => {
     }
 
     // Only super admin can create admin users
-    if (req.body.role === 'admin' && role !== 'super admin') {
+    if (req.body.role === 'admin' && role !== 'super-admin') {
       return res.status(403).json({
         status: 'error',
         message: 'Only super admin can create admin users.',
@@ -130,7 +130,7 @@ exports.updateUser = async (req, res) => {
     // Users can only update their own data, unless they're admin/super admin
     if (
       req.user._id.toString() !== id &&
-      !checkPermission(role, ['super admin', 'admin'])
+      !checkPermission(role, ['super-admin', 'admin'])
     ) {
       return res.status(403).json({
         status: 'error',
@@ -139,7 +139,7 @@ exports.updateUser = async (req, res) => {
     }
 
     // Only super admin can change roles
-    if (req.body.role && role !== 'super admin') {
+    if (req.body.role && role !== 'super-admin') {
       return res.status(403).json({
         status: 'error',
         message: 'Only super admin can change user roles.',
@@ -178,7 +178,7 @@ exports.deleteUser = async (req, res) => {
     const { role } = req.user;
     const { id } = req.params;
 
-    if (!checkPermission(role, ['super admin', 'admin'])) {
+    if (!checkPermission(role, ['super-admin', 'admin'])) {
       return res.status(403).json({
         status: 'error',
         message: 'Access denied. Insufficient permissions.',
@@ -259,7 +259,7 @@ exports.updateDaysOff = async (req, res) => {
       });
     }
 
-    if (!checkPermission(role, ['super admin', 'admin', 'coach'])) {
+    if (!checkPermission(role, ['super-admin', 'admin', 'coach'])) {
       return res.status(403).json({
         status: 'error',
         message: 'Access denied. Insufficient permissions.',

@@ -31,7 +31,7 @@ exports.register = async (req, res) => {
   try {
     const { role } = req.user;
 
-    if (!['super admin', 'admin'].includes(role)) {
+    if (!['super-admin', 'admin'].includes(role)) {
       return res.status(403).json({
         status: 'error',
         message: 'Access denied. Only administrators can register new users.',
@@ -41,10 +41,10 @@ exports.register = async (req, res) => {
     // req.user => is the loggedin user himself
     // req.body => is the user that the loggedin user try to register
     // Only super admin can create admin users
-    if (req.body.role === 'admin' && role !== 'super admin') {
+    if (req.body.role === 'admin' && role !== 'super-admin') {
       return res.status(403).json({
         status: 'error',
-        message: 'Only super admin can create admin users.',
+        message: 'Only super-admin can create admin users.',
       });
     }
 

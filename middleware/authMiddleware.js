@@ -104,7 +104,7 @@ exports.isCoach = (req, res, next) => {
 
 // Check if user is admin or super admin
 exports.isAdmin = (req, res, next) => {
-  if (!['admin', 'super admin'].includes(req.user.role)) {
+  if (!['admin', 'super-admin'].includes(req.user.role)) {
     return res.status(403).json({
       status: 'error',
       message: 'Access denied. This route is for administrators only.',
@@ -115,7 +115,7 @@ exports.isAdmin = (req, res, next) => {
 
 // Check if user is super admin only
 exports.isSuperAdmin = (req, res, next) => {
-  if (req.user.role !== 'super admin') {
+  if (req.user.role !== 'super-admin') {
     return res.status(403).json({
       status: 'error',
       message: 'Access denied. This route is for super administrators only.',
