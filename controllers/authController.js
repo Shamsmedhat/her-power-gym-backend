@@ -3,7 +3,7 @@ const Client = require('../models/clientModel');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
-const { handleDuplication } = require('../lib/helper');
+const { handleDuplication, generateUniqueUserId } = require('../lib/helper');
 
 // Helper function to create JWT token
 const signToken = (id) => {
@@ -52,7 +52,9 @@ exports.register = async (req, res) => {
     const hashedPassword = await bcrypt.hash(req.body.password, 12);
     req.body.password = hashedPassword;
 
-    const newUser = await User.create(req.body);
+    const userId = await generateUniqueUserId(req.body.phone, req.body.role);
+
+    const newUser = await User.create({ userId, ...req.body });
 
     createSendToken(newUser, 201, res);
   } catch (error) {
