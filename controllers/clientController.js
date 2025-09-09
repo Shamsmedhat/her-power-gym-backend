@@ -367,3 +367,55 @@ exports.getMySessions = async (req, res) => {
     });
   }
 };
+
+// Get coach details for clients
+exports.getCoachDetailsForClient = async (req, res) => {
+  try {
+    const { role, _id } = req.user;
+    const { coachId } = req.params;
+
+    if (role !== 'client') {
+      return res.status(403).json({
+        status: 'error',
+        message: 'Access denied. Only clients can access this endpoint.',
+      });
+    }
+
+    // Verify the client has access to this coach
+    const client = await Client.findOne({
+      _id: _id,
+      'privatePlan.coach': coachId,
+    });
+
+    if (!client) {
+      return res.status(403).json({
+        status: 'error',
+        message:
+          'Access denied. You can only view details of coaches assigned to you.',
+      });
+    }
+
+    const coach = await User.findById(coachId)
+      .select('name phone daysOff')
+      .select('-__v');
+
+    if (!coach) {
+      return res.status(404).json({
+        status: 'error',
+        message: 'Coach not found.',
+      });
+    }
+
+    res.status(200).json({
+      status: 'success',
+      data: {
+        coach,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: 'error',
+      message: error.message,
+    });
+  }
+};
