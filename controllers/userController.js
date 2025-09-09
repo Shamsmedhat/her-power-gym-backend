@@ -22,12 +22,35 @@ exports.getAllUsers = async (req, res) => {
       });
     }
 
-    const users = await User.find().select('-password');
+    const users = await User.find().select('-password').populate('clients');
+
+    // For coaches, we need to get their clients from the Client model
+    // since the relationship is stored as privatePlan.coach in Client documents
+    const usersWithClients = await Promise.all(
+      users.map(async (user) => {
+        if (user.role === 'coach') {
+          const coachClients = await Client.find({
+            'privatePlan.coach': user._id,
+          })
+            .populate('subscription.plan')
+            .populate('privatePlan.plan')
+            .select(
+              'name clientId phone privatePlan subscription createdAt updatedAt'
+            );
+
+          // Update the user object with the actual clients
+          const userObj = user.toObject();
+          userObj.clients = coachClients;
+          return userObj;
+        }
+        return user;
+      })
+    );
 
     res.status(200).json({
       status: 'success',
       data: {
-        users,
+        users: usersWithClients,
       },
     });
   } catch (error) {
@@ -55,7 +78,9 @@ exports.getUser = async (req, res) => {
       });
     }
 
-    const user = await User.findById(id).select('-password');
+    const user = await User.findById(id)
+      .select('-password')
+      .populate('clients');
 
     if (!user) {
       return res.status(404).json({
@@ -64,10 +89,25 @@ exports.getUser = async (req, res) => {
       });
     }
 
+    // For coaches, populate their clients from the Client model
+    let userWithClients = user;
+    if (user.role === 'coach') {
+      const coachClients = await Client.find({ 'privatePlan.coach': user._id })
+        .populate('subscription.plan')
+        .populate('privatePlan.plan')
+        .select(
+          'name clientId phone privatePlan subscription createdAt updatedAt'
+        );
+
+      const userObj = user.toObject();
+      userObj.clients = coachClients;
+      userWithClients = userObj;
+    }
+
     res.status(200).json({
       status: 'success',
       data: {
-        user,
+        user: userWithClients,
       },
     });
   } catch (error) {
