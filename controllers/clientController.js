@@ -368,6 +368,88 @@ exports.getMySessions = async (req, res) => {
   }
 };
 
+// Get coach's clients
+exports.getMyClients = async (req, res) => {
+  try {
+    const { role, _id } = req.user;
+
+    if (role !== 'coach') {
+      return res.status(403).json({
+        status: 'error',
+        message: 'Access denied. Only coaches can access this endpoint.',
+      });
+    }
+
+    const clients = await Client.find({ 'privatePlan.coach': _id })
+      .populate('subscription.plan')
+      .populate('privatePlan.plan')
+      .select('-__v');
+
+    res.status(200).json({
+      status: 'success',
+      data: {
+        clients,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: 'error',
+      message: error.message,
+    });
+  }
+};
+
+// Get client details for coach
+exports.getClientDetailsForCoach = async (req, res) => {
+  try {
+    const { role, _id } = req.user;
+    const { clientId } = req.params;
+
+    if (role !== 'coach') {
+      return res.status(403).json({
+        status: 'error',
+        message: 'Access denied. Only coaches can access this endpoint.',
+      });
+    }
+
+    // Verify the coach has access to this client
+    const client = await Client.findOne({
+      _id: clientId,
+      'privatePlan.coach': _id,
+    })
+      .populate('subscription.plan')
+      .populate('privatePlan.plan')
+      .select('-__v');
+
+    if (!client) {
+      return res.status(403).json({
+        status: 'error',
+        message:
+          'Access denied. You can only view details of clients assigned to you.',
+      });
+    }
+
+    // Get client's sessions
+    const sessions = await Session.find({ client: clientId })
+      .populate('coach', 'name phone')
+      .populate('statusChangeHistory.changedBy', 'name role')
+      .select('-__v');
+
+    res.status(200).json({
+      status: 'success',
+      data: {
+        client,
+        sessions,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: 'error',
+      message: error.message,
+    });
+  }
+};
+
 // Get coach details for clients
 exports.getCoachDetailsForClient = async (req, res) => {
   try {
