@@ -1,34 +1,46 @@
 const express = require('express');
+const {
+  canAccessClientData,
+  isClient,
+  isCoachOrAdmin,
+} = require('../middleware/authMiddleware');
 const clientController = require('../controllers/clientController');
 
 const router = express.Router();
 
-// Client CRUD operations
+// Admin/Coach only routes - Client CRUD operations
 router
   .route('/')
-  .get(clientController.getAllClients)
-  .post(clientController.createClient);
+  .get(isCoachOrAdmin, clientController.getAllClients)
+  .post(isCoachOrAdmin, clientController.createClient);
+
+// Routes that require specific client access (clients can only see their own data)
+router
+  .route('/:clientId')
+  .get(canAccessClientData, clientController.getClient)
+  .patch(isCoachOrAdmin, clientController.updateClient) // Only admins/coaches can update
+  .delete(isCoachOrAdmin, clientController.deleteClient); // Only admins/coaches can delete
+
+// Client-specific routes - clients can only access their own data
+router
+  .route('/:clientId/subscription')
+  .get(canAccessClientData, clientController.getMySubscription);
 
 router
-  .route('/:id')
-  .get(clientController.getClient)
-  .patch(clientController.updateClient)
-  .delete(clientController.deleteClient);
+  .route('/:clientId/sessions')
+  .get(canAccessClientData, clientController.getMySessions);
 
-// Client-specific routes
-router.route('/:id/subscription').get(clientController.getMySubscription);
-
-router.route('/:id/sessions').get(clientController.getMySessions);
-
-// Coach-specific routes
-router.route('/coach/my-clients').get(clientController.getMyClients);
+// Coach-specific routes - only coaches and admins
+router
+  .route('/coach/my-clients')
+  .get(isCoachOrAdmin, clientController.getMyClients);
 router
   .route('/coach/client/:clientId')
-  .get(clientController.getClientDetailsForCoach);
+  .get(isCoachOrAdmin, clientController.getClientDetailsForCoach);
 
-// Client-specific routes for coach access
+// Client-specific routes for coach access - clients can access this
 router
   .route('/client/coach/:coachId')
-  .get(clientController.getCoachDetailsForClient);
+  .get(clientController.getCoachDetailsForClient); // All authenticated users can access
 
 module.exports = router;

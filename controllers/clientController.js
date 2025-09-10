@@ -99,15 +99,13 @@ exports.getAllClients = async (req, res) => {
 exports.getClient = async (req, res) => {
   try {
     const { role, _id } = req.user;
-    const { id } = req.params;
+    const { clientId } = req.params;
 
     // Check if user is the client (for client access)
     const isClient = await Client.findOne({
-      _id: id,
-      $or: [
-        { 'privatePlan.coach': _id },
-        { _id: req.user.clientId }, // Assuming clientId is stored in user model
-      ],
+      _id: _id,
+      // TODO
+      $or: [{ 'privatePlan.coach': _id }, { _id: req.user._id }],
     });
 
     if (!isClient && !checkPermission(role, ['super-admin', 'admin'])) {
@@ -118,7 +116,7 @@ exports.getClient = async (req, res) => {
       });
     }
 
-    const client = await Client.findById(id)
+    const client = await Client.findById(clientId)
       .populate('subscription.plan')
       .populate('privatePlan.plan')
       .populate('privatePlan.coach', 'name phone daysOff');
@@ -192,7 +190,7 @@ exports.updateClient = async (req, res) => {
     // Check if user is the client (for client access)
     const isClient = await Client.findOne({
       _id: id,
-      $or: [{ 'privatePlan.coach': _id }, { _id: req.user.clientId }],
+      $or: [{ 'privatePlan.coach': _id }, { _id: req.user._id }],
     });
 
     if (!isClient && !checkPermission(role, ['super-admin', 'admin'])) {
@@ -277,12 +275,12 @@ exports.deleteClient = async (req, res) => {
 exports.getMySubscription = async (req, res) => {
   try {
     const { role, _id } = req.user;
-    const { id } = req.params;
+    const { clientId } = req.params;
 
     // Check if user is the client or their coach
     const isAuthorized = await Client.findOne({
-      _id: id,
-      $or: [{ 'privatePlan.coach': _id }, { _id: req.user.clientId }],
+      _id: clientId,
+      $or: [{ 'privatePlan.coach': _id }, { _id: req.user._id }],
     });
 
     if (!isAuthorized && !checkPermission(role, ['super-admin', 'admin'])) {
@@ -293,7 +291,7 @@ exports.getMySubscription = async (req, res) => {
       });
     }
 
-    const client = await Client.findById(id)
+    const client = await Client.findById(clientId)
       .populate('subscription.plan')
       .populate('privatePlan.plan')
       .populate('privatePlan.coach', 'name phone daysOff');
@@ -330,6 +328,7 @@ exports.getMySubscription = async (req, res) => {
   }
 };
 
+// TODO fix clientId, no need for now because its unused controllers for now
 // Get client's sessions
 exports.getMySessions = async (req, res) => {
   try {
