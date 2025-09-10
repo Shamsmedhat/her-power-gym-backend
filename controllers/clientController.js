@@ -185,11 +185,11 @@ exports.createClient = async (req, res) => {
 exports.updateClient = async (req, res) => {
   try {
     const { role, _id } = req.user;
-    const { id } = req.params;
+    const { clientId } = req.params;
 
     // Check if user is the client (for client access)
     const isClient = await Client.findOne({
-      _id: id,
+      _id: clientId,
       $or: [{ 'privatePlan.coach': _id }, { _id: req.user._id }],
     });
 
@@ -208,7 +208,7 @@ exports.updateClient = async (req, res) => {
     const payloadWithPrices = await derivePricesAndDefaults(incoming);
 
     const updatedClient = await Client.findByIdAndUpdate(
-      id,
+      clientId,
       payloadWithPrices,
       {
         new: true,
@@ -241,7 +241,7 @@ exports.updateClient = async (req, res) => {
 exports.deleteClient = async (req, res) => {
   try {
     const { role } = req.user;
-    const { id } = req.params;
+    const { clientId } = req.params;
 
     if (!checkPermission(role, ['super-admin', 'admin'])) {
       return res.status(403).json({
@@ -250,7 +250,7 @@ exports.deleteClient = async (req, res) => {
       });
     }
 
-    const client = await Client.findByIdAndDelete(id);
+    const client = await Client.findByIdAndDelete(clientId);
 
     if (!client) {
       return res.status(404).json({
