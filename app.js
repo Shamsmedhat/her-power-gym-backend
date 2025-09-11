@@ -13,6 +13,7 @@ const clientRouter = require('./routes/clientRoutes');
 const sessionRouter = require('./routes/sessionRoutes');
 const subscriptionRouter = require('./routes/subscriptionRoutes');
 const authRouter = require('./routes/authRoutes');
+const statisticsRouter = require('./routes/statisticsRoutes');
 
 // Variables
 const app = express();
@@ -32,6 +33,7 @@ app.use('/api/v1/users', protect, isCoachOrAdmin, userRouter); // Only coaches a
 app.use('/api/v1/clients', protect, clientRouter); // All authenticated users, but with specific access control
 app.use('/api/v1/sessions', protect, sessionRouter); // All authenticated users
 app.use('/api/v1/subscriptions', protect, subscriptionRouter); // All authenticated users
+app.use('/api/v1/statistics', protect, statisticsRouter); // Super-admin only
 
 // Error handling middleware (must be last)
 app.use(notFound);
