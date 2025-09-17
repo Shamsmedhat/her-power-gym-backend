@@ -8,7 +8,7 @@ I've created a comprehensive gym management system with role-based access contro
 
 - **User Model**: Added password reset functionality, days off history tracking
 - **Session Model**: Added status change history to track who changes session status
-- **Client Model**: Maintained existing structure with subscription and private plan support
+- **Client Model**: Added nationalId field (required, unique) with subscription and private plan support
 - **Subscription Model**: Maintained existing structure for main and private plans
 
 ### 2. **Complete CRUD Controllers**
@@ -191,10 +191,9 @@ curl -X POST http://localhost:3000/api/v1/clients \
   -d '{
     "name": "John Doe",
     "phone": "1234567894",
-    "clientId": "CLIENT001",
+    "nationalId": "12345678901234567890",
     "subscription": {
       "plan": "subscription_plan_id",
-      "priceAtPurchase": 50,
       "startDate": "2024-01-01",
       "endDate": "2024-02-01"
     }

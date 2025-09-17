@@ -148,6 +148,7 @@ A comprehensive gym management system with role-based access control for managin
 {
   name: String,
   phone: String (unique),
+  nationalId: String (unique),
   clientId: String (unique),
   subscription: {
     plan: ObjectId,

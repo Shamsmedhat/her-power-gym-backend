@@ -4,6 +4,7 @@ const clientSchema = new mongoose.Schema(
   {
     name: { type: String, required: true },
     phone: { type: String, required: true, unique: true },
+    nationalId: { type: String, required: true, unique: true },
     clientId: { type: String, required: true, unique: true },
 
     // Main subscription (always required, snapshot of price)
